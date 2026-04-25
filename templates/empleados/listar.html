@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Empleados — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Empleados</h1>
+        <p class="page-subtitle">Gestión del personal del sistema</p>
+    </div>
+    <a href="/empleados/agregar" class="btn-accent">
+        <i class="bi bi-plus-lg"></i> Agregar empleado
+    </a>
+</div>
+
+<div class="card-dark">
+    <div class="card-body p-0">
+        <table class="table-dark-custom w-100">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in empleados %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--accent);">
+                                {{ e.nombre[0].upper() }}
+                            </div>
+                            <strong>{{ e.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ e.email }}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ e.telefono }}</td>
+                    <td>
+                        {% if e.rol == 'admin' %}
+                            <span class="badge-custom badge-yellow">Admin</span>
+                        {% else %}
+                            <span class="badge-custom badge-blue">Agente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e.activo %}
+                            <span class="badge-custom badge-green">Activo</span>
+                        {% else %}
+                            <span class="badge-custom badge-gray">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if e._id != session.usuario.id %}
+                        <a href="/empleados/eliminar/{{ e._id }}"
+                           class="btn-danger-custom"
+                           onclick="return confirm('¿Eliminar este empleado?')">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </a>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.82rem;">Tu cuenta</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                        <i class="bi bi-people" style="font-size: 2rem; display:block; margin-bottom: 8px;"></i>
+                        No hay empleados registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

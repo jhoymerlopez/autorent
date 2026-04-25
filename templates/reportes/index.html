@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% block title %}Reportes — AutoRent{% endblock %}
+
+{% block extra_css %}
+<style>
+    .periodo-btn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text-muted);
+        font-family: 'Syne', sans-serif;
+        font-weight: 600;
+        font-size: 0.82rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .periodo-btn:hover { color: var(--text); border-color: #444; background: var(--surface2); }
+    .periodo-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(232,255,0,0.06); }
+
+    .stat-card { transition: border-color 0.2s, transform 0.2s; }
+    .stat-card:hover { border-color: #444; transform: translateY(-2px); }
+
+    .chart-container { position: relative; height: 260px; }
+    .donut-container { position: relative; height: 220px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h1 class="page-title">Reportes</h1>
+        <p class="page-subtitle">Estadísticas desde el {{ fecha_inicio }}</p>
+    </div>
+    <!-- Selector de período -->
+    <div class="d-flex gap-2">
+        <a href="/reportes?periodo=dia"    class="periodo-btn {% if periodo == 'dia'    %}active{% endif %}">Hoy</a>
+        <a href="/reportes?periodo=semana" class="periodo-btn {% if periodo == 'semana' %}active{% endif %}">Semana</a>
+        <a href="/reportes?periodo=mes"    class="periodo-btn {% if periodo == 'mes'    %}active{% endif %}">Mes</a>
+        <a href="/reportes?periodo=año"    class="periodo-btn {% if periodo == 'año'    %}active{% endif %}">Año</a>
+    </div>
+</div>
+
+<!-- ── STATS PRINCIPALES ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(232,255,0,0.1); color: var(--accent);">
+                <i class="bi bi-clipboard-check"></i>
+            </div>
+            <div class="stat-value">{{ total_alquileres }}</div>
+            <div class="stat-label">Alquileres</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(0,220,130,0.1); color: #00DC82;">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-value" style="font-size: 1.4rem;">${{ "{:,}".format(total_ingresos) }}</div>
+            <div class="stat-label">Ingresos</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(100,180,255,0.1); color: #64B4FF;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ a_tiempo }}</div>
+            <div class="stat-label">Entregas a tiempo</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255,77,0,0.1); color: var(--accent2);">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ total_multas }}</div>
+            <div class="stat-label">Multas del período</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── GRÁFICAS FILA 1 ── -->
+<div class="row g-3 mb-4">
+
+    <!-- Gráfica de alquileres por día -->
+    <div class="col-md-8">
+        <div class="card-dark h-100">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Alquileres e ingresos — últimos 7 días</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="chartAlquileres"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donut estado alquileres -->
+    <div class="col-md-4">
+        <div class="card-dark h-100">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Estado de alquileres</div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <div class="donut-container w-100">
+                    <canvas id="chartEstados"></canvas>
+                </div>
+                <div class="d-flex gap-3 mt-2 flex-wrap justify-content-center">
+                    <span style="font-size:0.78rem; color:#00DC82;"><i class="bi bi-circle-fill me-1"></i>Activos: {{ total_activos }}</span>
+                    <span style="font-size:0.78rem; color:#888;"><i class="bi bi-circle-fill me-1"></i>Finalizados: {{ total_finalizados }}</span>
+                    <span style="font-size:0.78rem; color:#FF4D00;"><i class="bi bi-circle-fill me-1"></i>Cancelados: {{ total_cancelados }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── GRÁFICAS FILA 2 ── -->
+<div class="row g-3 mb-4">
+
+    <!-- Top vehículos -->
+    <div class="col-md-6">
+        <div class="card-dark h-100">
+            <div class="card-header"><i class="bi bi-car-front me-2"></i>Vehículos más alquilados</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="chartVehiculos"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donut multas -->
+    <div class="col-md-6">
+        <div class="card-dark h-100">
+            <div class="card-header"><i class="bi bi-exclamation-triangle me-2"></i>Resumen de multas del período</div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <div style="background: var(--surface2); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color: var(--accent2);">{{ total_multas }}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Total multas</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: var(--surface2); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:800; color: var(--accent2);">${{ "{:,}".format(total_multas_monto) }}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Monto total</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: var(--surface2); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color: #E8FF00;">{{ multas_pendientes }}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Pendientes</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background: var(--surface2); border-radius: 10px; padding: 16px; text-align: center;">
+                            <div style="font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color: #00DC82;">{{ multas_pagadas }}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Pagadas</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 100px;">
+                    <canvas id="chartMullas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── TOP CLIENTES ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-people me-2"></i>Top 5 clientes</div>
+            <div class="card-body p-0">
+                <table class="table-dark-custom w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>Alquileres</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, c in enumerate(top_clientes) %}
+                        <tr>
+                            <td style="color: var(--accent); font-family:'Syne',sans-serif; font-weight:800;">{{ i+1 }}</td>
+                            <td style="font-weight:600;">{{ c.nombre }}</td>
+                            <td style="color:var(--text-muted); font-size:0.82rem;">{{ c.email }}</td>
+                            <td>
+                                <span style="background: rgba(232,255,0,0.1); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-weight:700; font-size:0.85rem;">{{ c.total }}</span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">Sin datos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-car-front me-2"></i>Top 5 vehículos</div>
+            <div class="card-body p-0">
+                <table class="table-dark-custom w-100">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Vehículo</th>
+                            <th>Placa</th>
+                            <th>Alquileres</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, v in enumerate(top_vehiculos) %}
+                        <tr>
+                            <td style="color: var(--accent); font-family:'Syne',sans-serif; font-weight:800;">{{ i+1 }}</td>
+                            <td style="font-weight:600;">{{ v.nombre }}</td>
+                            <td style="font-family:monospace; color:var(--accent); font-size:0.85rem;">{{ v.placa }}</td>
+                            <td>
+                                <span style="background: rgba(232,255,0,0.1); color: var(--accent); padding: 3px 10px; border-radius: 20px; font-weight:700; font-size:0.85rem;">{{ v.total }}</span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="text-align:center; padding:24px; color:var(--text-muted);">Sin datos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── TABLA DE ALQUILERES ── -->
+<div class="card-dark">
+    <div class="card-header"><i class="bi bi-table me-2"></i>Detalle de alquileres del período (últimos 20)</div>
+    <div class="card-body p-0">
+        <table class="table-dark-custom w-100">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Inicio</th>
+                    <th>Fin</th>
+                    <th>Días</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Entrega</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in alquileres_tabla %}
+                <tr>
+                    <td style="font-weight:600;">{{ a.cliente }}</td>
+                    <td>{{ a.vehiculo }}</td>
+                    <td style="color:var(--text-muted); font-size:0.85rem;">{{ a.fecha_inicio }}</td>
+                    <td style="color:var(--text-muted); font-size:0.85rem;">{{ a.fecha_fin }}</td>
+                    <td style="color:var(--accent); font-weight:700;">{{ a.dias }}</td>
+                    <td style="color:var(--accent); font-weight:700;">${{ "{:,}".format(a.total) }}</td>
+                    <td>
+                        {% if a.estado == 'activo' %}
+                            <span class="badge-custom badge-green">Activo</span>
+                        {% elif a.estado == 'finalizado' %}
+                            <span class="badge-custom badge-gray">Finalizado</span>
+                        {% else %}
+                            <span class="badge-custom badge-red">Cancelado</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if a.estado == 'activo' %}
+                            {% if a.a_tiempo %}
+                                <span class="badge-custom badge-green"><i class="bi bi-clock"></i> En curso</span>
+                            {% else %}
+                                <span class="badge-custom badge-red"><i class="bi bi-exclamation-circle"></i> Vencido</span>
+                            {% endif %}
+                        {% elif a.estado == 'finalizado' %}
+                            <span class="badge-custom badge-green"><i class="bi bi-check-circle"></i> A tiempo</span>
+                        {% else %}
+                            <span class="badge-custom badge-gray">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">
+                        Sin alquileres en este período
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+    Chart.defaults.color = '#888';
+    Chart.defaults.font.family = 'DM Sans';
+
+    const labels    = {{ labels_grafica | tojson }};
+    const datos     = {{ datos_grafica | tojson }};
+    const ingresos  = {{ ingresos_grafica | tojson }};
+
+    // ── Gráfica alquileres por día ──
+    new Chart(document.getElementById('chartAlquileres'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Alquileres',
+                    data: datos,
+                    backgroundColor: 'rgba(232,255,0,0.7)',
+                    borderRadius: 6,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Ingresos ($)',
+                    data: ingresos,
+                    type: 'line',
+                    borderColor: '#00DC82',
+                    backgroundColor: 'rgba(0,220,130,0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00DC82',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#888', font: { size: 11 } } } },
+            scales: {
+                x: { grid: { color: '#2A2A2A' }, ticks: { color: '#888' } },
+                y: {
+                    grid: { color: '#2A2A2A' },
+                    ticks: {
+                        color: '#E8FF00',
+                        stepSize: 1,
+                        precision: 0,
+                        callback: val => Number.isInteger(val) ? val : null
+                    },
+                    beginAtZero: true
+                },
+                y1: {
+                    position: 'right',
+                    grid: { display: false },
+                    ticks: {
+                        color: '#00DC82',
+                        callback: val => '$' + val.toLocaleString('es-CO')
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // ── Donut estados ──
+    new Chart(document.getElementById('chartEstados'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Activos', 'Finalizados', 'Cancelados'],
+            datasets: [{
+                data: [{{ total_activos }}, {{ total_finalizados }}, {{ total_cancelados }}],
+                backgroundColor: ['#00DC82', '#444', '#FF4D00'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // ── Gráfica top vehículos ──
+    const topVehiculos = {{ top_vehiculos | tojson }};
+    new Chart(document.getElementById('chartVehiculos'), {
+        type: 'bar',
+        data: {
+            labels: topVehiculos.map(v => v.nombre),
+            datasets: [{
+                label: 'Alquileres',
+                data: topVehiculos.map(v => v.total),
+                backgroundColor: ['rgba(232,255,0,0.8)', 'rgba(232,255,0,0.6)', 'rgba(232,255,0,0.4)', 'rgba(232,255,0,0.3)', 'rgba(232,255,0,0.2)'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#2A2A2A' }, ticks: { color: '#888' }, beginAtZero: true },
+                y: { grid: { display: false }, ticks: { color: '#ccc' } }
+            }
+        }
+    });
+
+    // ── Donut multas ──
+    new Chart(document.getElementById('chartMullas'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Pendientes', 'Pagadas'],
+            datasets: [{
+                data: [{{ multas_pendientes }}, {{ multas_pagadas }}],
+                backgroundColor: ['#E8FF00', '#00DC82'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#888', font: { size: 11 } } } },
+            cutout: '65%'
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoRent — Registro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0A0A;
+            --accent: #E8FF00;
+            --surface: #141414;
+            --surface2: #1E1E1E;
+            --border: #2A2A2A;
+            --text: #F0F0F0;
+            --text-muted: #888;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--primary);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .register-container {
+            width: 100%;
+            max-width: 520px;
+        }
+        .brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--accent);
+            margin-bottom: 32px;
+            display: block;
+        }
+        h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        .form-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .form-row { display: flex; gap: 16px; }
+        .form-row .form-group { flex: 1; }
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-control, .form-select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: border-color 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(232,255,0,0.08);
+            background: var(--surface2);
+            color: var(--text);
+        }
+        .form-control::placeholder { color: #444; }
+        .form-select option { background: var(--surface2); }
+        .btn-register {
+            width: 100%;
+            background: var(--accent);
+            color: #0A0A0A;
+            border: none;
+            padding: 13px;
+            border-radius: 8px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+        .btn-register:hover { background: #d4e800; transform: translateY(-1px); }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .login-link a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .section-divider {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin: 20px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-divider::before, .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .alert-custom {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .alert-danger  { background: rgba(255,77,0,0.1); border: 1px solid rgba(255,77,0,0.2); color: #FF4D00; }
+        .alert-success { background: rgba(0,220,130,0.1); border: 1px solid rgba(0,220,130,0.2); color: #00DC82; }
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <span class="brand">AutoRent</span>
+    <h2>Crear cuenta</h2>
+    <p class="subtitle">Regístrate para alquilar vehículos</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert-custom alert-{{ category }}">
+                    <i class="bi bi-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-card">
+        <form method="POST" action="/registro">
+            <div class="section-divider">Información personal</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Nombre completo</label>
+                    <input type="text" name="nombre" class="form-control" placeholder="Juan Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" name="telefono" class="form-control" placeholder="300 000 0000" required>
+                </div>
+            </div>
+
+            <div class="section-divider">Documento</div>
+            <div class="form-row">
+                <div class="form-group" style="max-width: 140px;">
+                    <label class="form-label">Tipo</label>
+                    <select name="doc_tipo" class="form-select" required>
+                        <option value="CC">CC</option>
+                        <option value="CE">CE</option>
+                        <option value="PA">Pasaporte</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Número</label>
+                    <input type="text" name="doc_num" class="form-control" placeholder="123456789" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Licencia de conducción</label>
+                <input type="text" name="licencia" class="form-control" placeholder="LIC-COL-XXXXX" required>
+            </div>
+
+            <div class="section-divider">Acceso</div>
+            <div class="form-group">
+                <label class="form-label">Correo electrónico</label>
+                <input type="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="Mínimo 6 caracteres" required>
+            </div>
+
+            <button type="submit" class="btn-register">Crear cuenta →</button>
+        </form>
+    </div>
+
+    <div class="login-link">
+        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+    </div>
+</div>
+</body>
+</html>

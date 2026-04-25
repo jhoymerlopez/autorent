@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Alquiler — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/alquileres" class="btn-outline-custom mb-3">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <h1 class="page-title">Nuevo alquiler</h1>
+    <p class="page-subtitle">Registra un nuevo alquiler de vehículo</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-clipboard-plus me-2"></i>Datos del alquiler</div>
+            <div class="card-body form-dark">
+                <form method="POST" action="/alquileres/crear" id="form-alquiler">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Cliente</label>
+                            <select name="usuario_id" class="form-select" required>
+                                <option value="">Seleccionar cliente...</option>
+                                {% for u in usuarios %}
+                                <option value="{{ u._id }}">{{ u.nombre }} — {{ u.documento.tipo }} {{ u.documento.numero }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vehículo</label>
+                            <select name="vehiculo_id" class="form-select" id="select-vehiculo" required>
+                                <option value="">Seleccionar vehículo...</option>
+                                {% for v in vehiculos %}
+                                <option value="{{ v._id }}" data-precio="{{ v.precio_dia }}">
+                                    {{ v.marca }} {{ v.modelo }} ({{ v.placa }}) — ${{ "{:,}".format(v.precio_dia) }}/día
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de inicio</label>
+                            <input type="date" name="fecha_inicio" id="fecha-inicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de fin</label>
+                            <input type="date" name="fecha_fin" id="fecha-fin" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Método de pago</label>
+                            <select name="metodo_pago" class="form-select" required>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Observaciones</label>
+                            <input type="text" name="observaciones" class="form-control" placeholder="Opcional...">
+                        </div>
+                    </div>
+
+                    <!-- Resumen de precio -->
+                    <div id="resumen" style="display:none; background: rgba(232,255,0,0.06); border: 1px solid rgba(232,255,0,0.2); border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px;">Resumen</div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span style="color: var(--text-muted);">Días:</span>
+                            <span id="resumen-dias" style="font-weight: 600;">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span style="color: var(--text-muted);">Precio por día:</span>
+                            <span id="resumen-precio-dia" style="font-weight: 600;">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between" style="border-top: 1px solid rgba(232,255,0,0.2); padding-top: 8px; margin-top: 4px;">
+                            <span style="font-family: 'Syne', sans-serif; font-weight: 700;">Total:</span>
+                            <span id="resumen-total" style="font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; color: var(--accent);">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn-accent">
+                            <i class="bi bi-check-lg"></i> Crear alquiler
+                        </button>
+                        <a href="/alquileres" class="btn-outline-custom">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>Información</div>
+            <div class="card-body">
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.7;">
+                    <i class="bi bi-shield-check" style="color: var(--accent);"></i> Solo se muestran vehículos <strong style="color: var(--text);">disponibles</strong> con documentos vigentes.<br><br>
+                    <i class="bi bi-credit-card" style="color: var(--accent);"></i> El pago se registra automáticamente al crear el alquiler.<br><br>
+                    <i class="bi bi-car-front" style="color: var(--accent);"></i> El vehículo cambia a estado <strong style="color: var(--text);">Alquilado</strong> automáticamente.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function calcularTotal() {
+        const vehiculoSelect = document.getElementById('select-vehiculo');
+        const fechaInicio    = document.getElementById('fecha-inicio').value;
+        const fechaFin       = document.getElementById('fecha-fin').value;
+        const resumen        = document.getElementById('resumen');
+
+        if (!vehiculoSelect.value || !fechaInicio || !fechaFin) {
+            resumen.style.display = 'none';
+            return;
+        }
+
+        const precio = parseInt(vehiculoSelect.selectedOptions[0].dataset.precio);
+        const inicio = new Date(fechaInicio);
+        const fin    = new Date(fechaFin);
+        const dias   = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24));
+
+        if (dias <= 0) { resumen.style.display = 'none'; return; }
+
+        const total = dias * precio;
+        document.getElementById('resumen-dias').textContent      = dias + ' días';
+        document.getElementById('resumen-precio-dia').textContent = '$' + precio.toLocaleString('es-CO');
+        document.getElementById('resumen-total').textContent      = '$' + total.toLocaleString('es-CO');
+        resumen.style.display = 'block';
+    }
+
+    document.getElementById('select-vehiculo').addEventListener('change', calcularTotal);
+    document.getElementById('fecha-inicio').addEventListener('change', calcularTotal);
+    document.getElementById('fecha-fin').addEventListener('change', calcularTotal);
+
+    // Fecha mínima = hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha-inicio').min = hoy;
+    document.getElementById('fecha-fin').min     = hoy;
+</script>
+{% endblock %}

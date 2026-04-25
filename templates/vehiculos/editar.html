@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}Editar Vehículo — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/vehiculos" class="btn-outline-custom mb-3">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <h1 class="page-title">Editar vehículo</h1>
+    <p class="page-subtitle">{{ vehiculo.marca }} {{ vehiculo.modelo }} — {{ vehiculo.placa }}</p>
+</div>
+
+<div class="row g-4">
+
+    <!-- ── Información general ── -->
+    <div class="col-md-7">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-pencil me-2"></i>Información general</div>
+            <div class="card-body form-dark">
+                <form method="POST" action="/vehiculos/editar/{{ vehiculo._id }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Marca</label>
+                            <input type="text" name="marca" class="form-control" value="{{ vehiculo.marca }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" name="modelo" class="form-control" value="{{ vehiculo.modelo }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Año</label>
+                            <input type="number" name="año" class="form-control" value="{{ vehiculo.año }}" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Color</label>
+                            <input type="text" name="color" class="form-control" value="{{ vehiculo.color }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kilometraje</label>
+                            <input type="number" name="kilometraje" class="form-control" value="{{ vehiculo.kilometraje }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Precio por día ($)</label>
+                            <input type="number" name="precio_dia" class="form-control" value="{{ vehiculo.precio_dia }}" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Combustible</label>
+                            <select name="combustible" class="form-select" required>
+                                <option value="gasolina"  {% if vehiculo.combustible == 'gasolina'  %}selected{% endif %}>Gasolina</option>
+                                <option value="diesel"    {% if vehiculo.combustible == 'diesel'    %}selected{% endif %}>Diesel</option>
+                                <option value="electrico" {% if vehiculo.combustible == 'electrico' %}selected{% endif %}>Eléctrico</option>
+                                <option value="hibrido"   {% if vehiculo.combustible == 'hibrido'   %}selected{% endif %}>Híbrido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Transmisión</label>
+                            <select name="transmision" class="form-select" required>
+                                <option value="automatica" {% if vehiculo.transmision == 'automatica' %}selected{% endif %}>Automática</option>
+                                <option value="manual"     {% if vehiculo.transmision == 'manual'     %}selected{% endif %}>Manual</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select" required>
+                                <option value="disponible"    {% if vehiculo.estado == 'disponible'    %}selected{% endif %}>Disponible</option>
+                                <option value="alquilado"     {% if vehiculo.estado == 'alquilado'     %}selected{% endif %}>Alquilado</option>
+                                <option value="mantenimiento" {% if vehiculo.estado == 'mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn-accent">
+                            <i class="bi bi-check-lg"></i> Guardar cambios
+                        </button>
+                        <a href="/vehiculos" class="btn-outline-custom">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Panel derecho ── -->
+    <div class="col-md-5">
+
+        <!-- Documentos actuales -->
+        <div class="card-dark mb-4">
+            <div class="card-header"><i class="bi bi-shield-check me-2"></i>Documentos actuales</div>
+            <div class="card-body">
+                {% if vehiculo.documentos is defined and vehiculo.documentos %}
+                    {% for doc_nombre, doc_info in vehiculo.documentos.items() %}
+                    <div style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px;">
+                            {{ doc_nombre.replace('_', ' ') }}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span style="font-size: 0.85rem; font-weight: 600;">{{ doc_info.numero }}</span>
+                            {% if doc_info.estado == 'vigente' %}
+                                <span class="badge-custom badge-green">Vigente</span>
+                            {% else %}
+                                <span class="badge-custom badge-red">Vencido</span>
+                            {% endif %}
+                        </div>
+                        {% if doc_info.vencimiento is defined %}
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px;">
+                            Vence: {{ doc_info.vencimiento.strftime('%d/%m/%Y') }}
+                        </div>
+                        {% endif %}
+                        {% if doc_info.aseguradora is defined %}
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">
+                            Aseguradora: {{ doc_info.aseguradora }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+                        <i class="bi bi-file-earmark-x" style="font-size: 2rem; display:block; margin-bottom: 8px;"></i>
+                        Sin documentos registrados
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Formulario de documentos -->
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-file-earmark-plus me-2"></i>Actualizar documentos</div>
+            <div class="card-body form-dark">
+                <form method="POST" action="/vehiculos/documentos/{{ vehiculo._id }}" enctype="multipart/form-data">
+
+                    <!-- SOAT -->
+                    <div style="margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 10px; font-weight: 700;">
+                            <i class="bi bi-shield"></i> SOAT
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Número</label>
+                            <input type="text" name="soat_numero" class="form-control" placeholder="SOAT-2024-XXX"
+                                value="{{ vehiculo.documentos.soat.numero if vehiculo.documentos is defined and 'soat' in vehiculo.documentos else '' }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Fecha de vencimiento</label>
+                            <input type="date" name="soat_vencimiento" class="form-control"
+                                value="{{ vehiculo.documentos.soat.vencimiento.strftime('%Y-%m-%d') if vehiculo.documentos is defined and 'soat' in vehiculo.documentos and vehiculo.documentos.soat.vencimiento is defined else '' }}">
+                        </div>
+                        <div>
+                            <label class="form-label">Imagen del documento</label>
+                            {% if vehiculo.documentos is defined and 'soat' in vehiculo.documentos and vehiculo.documentos.soat.imagen %}
+                                <img src="/static/{{ vehiculo.documentos.soat.imagen }}" style="width:100%; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);">
+                            {% endif %}
+                            <input type="file" name="soat_imagen" class="form-control" accept="image/*,.pdf">
+                        </div>
+                    </div>
+
+                    <!-- Tecnomecánica -->
+                    <div style="margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 10px; font-weight: 700;">
+                            <i class="bi bi-gear"></i> Tecnomecánica
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Número</label>
+                            <input type="text" name="tec_numero" class="form-control" placeholder="TEC-2024-XXX"
+                                value="{{ vehiculo.documentos.tecnomecanica.numero if vehiculo.documentos is defined and 'tecnomecanica' in vehiculo.documentos else '' }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Fecha de vencimiento</label>
+                            <input type="date" name="tec_vencimiento" class="form-control"
+                                value="{{ vehiculo.documentos.tecnomecanica.vencimiento.strftime('%Y-%m-%d') if vehiculo.documentos is defined and 'tecnomecanica' in vehiculo.documentos and vehiculo.documentos.tecnomecanica.vencimiento is defined else '' }}">
+                        </div>
+                        <div>
+                            <label class="form-label">Imagen del documento</label>
+                            {% if vehiculo.documentos is defined and 'tecnomecanica' in vehiculo.documentos and vehiculo.documentos.tecnomecanica.imagen %}
+                                <img src="/static/{{ vehiculo.documentos.tecnomecanica.imagen }}" style="width:100%; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);">
+                            {% endif %}
+                            <input type="file" name="tec_imagen" class="form-control" accept="image/*,.pdf">
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta de propiedad -->
+                    <div style="margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border);">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 10px; font-weight: 700;">
+                            <i class="bi bi-card-text"></i> Tarjeta de propiedad
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Número</label>
+                            <input type="text" name="tp_numero" class="form-control" placeholder="TP-XXXXXX"
+                                value="{{ vehiculo.documentos.tarjeta_propiedad.numero if vehiculo.documentos is defined and 'tarjeta_propiedad' in vehiculo.documentos else '' }}">
+                        </div>
+                        <div>
+                            <label class="form-label">Imagen del documento</label>
+                            {% if vehiculo.documentos is defined and 'tarjeta_propiedad' in vehiculo.documentos and vehiculo.documentos.tarjeta_propiedad.imagen %}
+                                <img src="/static/{{ vehiculo.documentos.tarjeta_propiedad.imagen }}" style="width:100%; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);">
+                            {% endif %}
+                            <input type="file" name="tp_imagen" class="form-control" accept="image/*,.pdf">
+                        </div>
+                    </div>
+
+                    <!-- Seguro todo riesgo -->
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 10px; font-weight: 700;">
+                            <i class="bi bi-umbrella"></i> Seguro todo riesgo
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Número</label>
+                            <input type="text" name="seg_numero" class="form-control" placeholder="SEG-2024-XXX"
+                                value="{{ vehiculo.documentos.seguro_todo_riesgo.numero if vehiculo.documentos is defined and 'seguro_todo_riesgo' in vehiculo.documentos else '' }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Aseguradora</label>
+                            <input type="text" name="seg_aseguradora" class="form-control" placeholder="Sura, Bolívar..."
+                                value="{{ vehiculo.documentos.seguro_todo_riesgo.aseguradora if vehiculo.documentos is defined and 'seguro_todo_riesgo' in vehiculo.documentos else '' }}">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Fecha de vencimiento</label>
+                            <input type="date" name="seg_vencimiento" class="form-control"
+                                value="{{ vehiculo.documentos.seguro_todo_riesgo.vencimiento.strftime('%Y-%m-%d') if vehiculo.documentos is defined and 'seguro_todo_riesgo' in vehiculo.documentos and vehiculo.documentos.seguro_todo_riesgo.vencimiento is defined else '' }}">
+                        </div>
+                        <div>
+                            <label class="form-label">Imagen del documento</label>
+                            {% if vehiculo.documentos is defined and 'seguro_todo_riesgo' in vehiculo.documentos and vehiculo.documentos.seguro_todo_riesgo.imagen %}
+                                <img src="/static/{{ vehiculo.documentos.seguro_todo_riesgo.imagen }}" style="width:100%; border-radius:8px; margin-bottom:8px; border:1px solid var(--border);">
+                            {% endif %}
+                            <input type="file" name="seg_imagen" class="form-control" accept="image/*,.pdf">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-accent w-100 mb-2">
+                        <i class="bi bi-save"></i> Guardar documentos
+                    </button>
+                </form>
+
+                {% if vehiculo.documentos is defined and vehiculo.documentos %}
+                <a href="/vehiculos/documentos/pdf/{{ vehiculo._id }}" class="btn-accent w-100"
+                   style="display:block; text-align:center; background: rgba(232,255,0,0.1); color: var(--accent);
+                          border: 1px solid var(--accent); padding: 10px; border-radius: 10px;
+                          font-family:'Syne',sans-serif; font-weight:700; text-decoration:none; margin-top:8px;">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Descargar PDF de documentos
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

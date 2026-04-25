@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Agregar Vehículo — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/vehiculos" class="btn-outline-custom mb-3">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <h1 class="page-title">Agregar vehículo</h1>
+    <p class="page-subtitle">Registra un nuevo vehículo en la flota</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-car-front me-2"></i>Información del vehículo</div>
+            <div class="card-body form-dark">
+                <form method="POST" action="/vehiculos/agregar">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Marca</label>
+                            <input type="text" name="marca" class="form-control" placeholder="Toyota" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" name="modelo" class="form-control" placeholder="Corolla" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Año</label>
+                            <input type="number" name="año" class="form-control" placeholder="2023" min="1990" max="2030" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Placa</label>
+                            <input type="text" name="placa" class="form-control" placeholder="ABC-123" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Color</label>
+                            <input type="text" name="color" class="form-control" placeholder="Blanco" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="sedan">Sedan</option>
+                                <option value="SUV">SUV</option>
+                                <option value="camioneta">Camioneta</option>
+                                <option value="moto">Moto</option>
+                                <option value="furgoneta">Furgoneta</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Combustible</label>
+                            <select name="combustible" class="form-select" required>
+                                <option value="gasolina">Gasolina</option>
+                                <option value="diesel">Diesel</option>
+                                <option value="electrico">Eléctrico</option>
+                                <option value="hibrido">Híbrido</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Transmisión</label>
+                            <select name="transmision" class="form-select" required>
+                                <option value="automatica">Automática</option>
+                                <option value="manual">Manual</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Kilometraje</label>
+                            <input type="number" name="kilometraje" class="form-control" placeholder="0" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Precio por día ($)</label>
+                            <input type="number" name="precio_dia" class="form-control" placeholder="80000" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn-accent">
+                            <i class="bi bi-plus-lg"></i> Agregar vehículo
+                        </button>
+                        <a href="/vehiculos" class="btn-outline-custom">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>Nota</div>
+            <div class="card-body">
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                    El vehículo se registrará con estado <strong style="color: var(--accent);">Disponible</strong> por defecto.<br><br>
+                    Recuerda agregar los documentos (SOAT, Tecnomecánica, etc.) después de registrarlo para que pueda ser alquilado.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

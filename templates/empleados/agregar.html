@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Agregar Empleado — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/empleados" class="btn-outline-custom mb-3">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <h1 class="page-title">Agregar empleado</h1>
+    <p class="page-subtitle">Registra un nuevo miembro del personal</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-person-plus me-2"></i>Datos del empleado</div>
+            <div class="card-body form-dark">
+                <form method="POST" action="/empleados/agregar">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre completo</label>
+                        <input type="text" name="nombre" class="form-control"
+                            placeholder="Nombre Apellido" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" name="email" class="form-control"
+                            placeholder="correo@empresa.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" name="telefono" class="form-control"
+                            placeholder="300 000 0000" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rol</label>
+                        <select name="rol" class="form-select" required>
+                            <option value="agente">Agente</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Contraseña</label>
+                        <input type="password" name="password" class="form-control"
+                            placeholder="Mínimo 6 caracteres" required>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn-accent">
+                            <i class="bi bi-person-plus"></i> Agregar empleado
+                        </button>
+                        <a href="/empleados" class="btn-outline-custom">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header"><i class="bi bi-info-circle me-2"></i>Roles del sistema</div>
+            <div class="card-body">
+                <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <span class="badge-custom badge-yellow">Admin</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6;">
+                        Acceso total al sistema. Puede gestionar empleados, vehículos, alquileres y multas.
+                    </p>
+                </div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                        <span class="badge-custom badge-blue">Agente</span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.6;">
+                        Puede gestionar vehículos, alquileres y multas. No puede administrar empleados.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

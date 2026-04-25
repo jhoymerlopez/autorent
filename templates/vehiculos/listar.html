@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Vehículos — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Vehículos</h1>
+        <p class="page-subtitle">Gestión de la flota de vehículos</p>
+    </div>
+    {% if session.usuario.rol in ['admin', 'agente'] %}
+    <a href="/vehiculos/agregar" class="btn-accent">
+        <i class="bi bi-plus-lg"></i> Agregar vehículo
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filtros -->
+<div class="card-dark mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-3 flex-wrap">
+            <button class="btn-outline-custom filtro-btn active" data-filtro="todos">
+                Todos
+            </button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="disponible">
+                <i class="bi bi-check-circle"></i> Disponibles
+            </button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="alquilado">
+                <i class="bi bi-clock"></i> Alquilados
+            </button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="mantenimiento">
+                <i class="bi bi-tools"></i> Mantenimiento
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de vehículos -->
+<div class="card-dark">
+    <div class="card-body p-0">
+        <table class="table-dark-custom w-100" id="tabla-vehiculos">
+            <thead>
+                <tr>
+                    <th>Vehículo</th>
+                    <th>Placa</th>
+                    <th>Tipo</th>
+                    <th>Combustible</th>
+                    <th>Km</th>
+                    <th>Precio/día</th>
+                    <th>Documentos</th>
+                    <th>Estado</th>
+                    {% if session.usuario.rol in ['admin', 'agente'] %}
+                    <th>Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehiculos %}
+                <tr data-estado="{{ v.estado }}">
+                    <td>
+                        <div style="font-weight: 600;">{{ v.marca }} {{ v.modelo }}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">{{ v.año }} · {{ v.color }} · {{ v.transmision }}</div>
+                    </td>
+                    <td style="font-family: monospace; color: var(--accent); font-size: 0.85rem;">{{ v.placa }}</td>
+                    <td><span class="badge-custom badge-blue">{{ v.tipo }}</span></td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ v.combustible }}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ "{:,}".format(v.kilometraje) }} km</td>
+                    <td style="color: var(--accent); font-weight: 700;">${{ "{:,}".format(v.precio_dia) }}</td>
+                    <td>
+                        {% if v.documentos is defined and v.documentos %}
+                            {% set ns = namespace(tiene_vencido=false) %}
+                            {% for doc_nombre, doc_info in v.documentos.items() %}
+                                {% if doc_info.estado == 'vencido' %}
+                                    {% set ns.tiene_vencido = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if ns.tiene_vencido %}
+                                <span class="badge-custom badge-red"><i class="bi bi-exclamation-circle"></i> Vencido</span>
+                            {% else %}
+                                <span class="badge-custom badge-green"><i class="bi bi-shield-check"></i> Al día</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge-custom badge-gray">Sin docs</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if v.estado == 'disponible' %}
+                            <span class="badge-custom badge-green">Disponible</span>
+                        {% elif v.estado == 'alquilado' %}
+                            <span class="badge-custom badge-yellow">Alquilado</span>
+                        {% else %}
+                            <span class="badge-custom badge-gray">Mantenimiento</span>
+                        {% endif %}
+                    </td>
+                    {% if session.usuario.rol in ['admin', 'agente'] %}
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="/vehiculos/editar/{{ v._id }}" class="btn-outline-custom">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if session.usuario.rol == 'admin' %}
+                            <a href="/vehiculos/eliminar/{{ v._id }}"
+                               class="btn-danger-custom"
+                               onclick="return confirm('¿Eliminar este vehículo?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                        <i class="bi bi-car-front" style="font-size: 2rem; display:block; margin-bottom: 8px;"></i>
+                        No hay vehículos registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filtro por estado
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.dataset.filtro;
+            document.querySelectorAll('#tabla-vehiculos tbody tr[data-estado]').forEach(row => {
+                row.style.display = (filtro === 'todos' || row.dataset.estado === filtro) ? '' : 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filtro-btn.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: rgba(232,255,0,0.06);
+    }
+</style>
+{% endblock %}

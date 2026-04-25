@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Clientes — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Clientes</h1>
+    <p class="page-subtitle">Clientes registrados en el sistema</p>
+</div>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card-dark">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people me-2"></i>Total: {{ clientes|length }} cliente(s)</span>
+        <input type="text" id="buscador" placeholder="Buscar por nombre o email..."
+            style="background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+                   border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; width: 260px; outline: none;">
+    </div>
+    <div class="card-body p-0">
+        <table class="table-dark-custom w-100" id="tablaClientes">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Documento</th>
+                    <th>Teléfono</th>
+                    <th>Licencia</th>
+                    <th>Alquileres</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in clientes %}
+                <tr class="fila-cliente">
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:36px; height:36px; border-radius:50%; background: rgba(232,255,0,0.15);
+                                        color: var(--accent); font-family:'Syne',sans-serif; font-weight:800;
+                                        display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0;">
+                                {{ c.nombre[0].upper() }}
+                            </div>
+                            <div>
+                                <div style="font-weight:600; font-size:0.9rem;">{{ c.nombre }}</div>
+                                <div style="font-size:0.78rem; color:var(--text-muted);">{{ c.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase;">{{ c.documento.tipo if c.documento else 'N/A' }}</span><br>
+                        <span style="font-family:monospace; font-size:0.85rem;">{{ c.documento.numero if c.documento else 'N/A' }}</span>
+                    </td>
+                    <td style="color:var(--text-muted); font-size:0.88rem;">{{ c.telefono or 'N/A' }}</td>
+                    <td style="font-family:monospace; font-size:0.85rem; color:var(--accent);">{{ c.licencia or 'N/A' }}</td>
+                    <td>
+                        <span style="background: rgba(232,255,0,0.1); color: var(--accent);
+                                     padding: 3px 12px; border-radius: 20px; font-weight:700; font-size:0.85rem;">
+                            {{ c.total_alquileres }}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="confirmarEliminar('{{ c._id }}', '{{ c.nombre }}')"
+                            style="background: rgba(255,77,0,0.1); color: var(--accent2); border: 1px solid rgba(255,77,0,0.3);
+                                   border-radius: 8px; padding: 5px 14px; font-size: 0.82rem; cursor:pointer;
+                                   font-family:'Syne',sans-serif; font-weight:600; transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(255,77,0,0.25)'"
+                            onmouseout="this.style.background='rgba(255,77,0,0.1)'">
+                            <i class="bi bi-trash me-1"></i>Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:48px; color:var(--text-muted);">
+                        <i class="bi bi-people" style="font-size:2rem; display:block; margin-bottom:8px;"></i>
+                        No hay clientes registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal confirmación -->
+<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7);
+     z-index:9999; align-items:center; justify-content:center;">
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+                padding: 32px; max-width: 400px; width: 90%; text-align:center;">
+        <i class="bi bi-exclamation-triangle" style="font-size:2.5rem; color:var(--accent2); display:block; margin-bottom:12px;"></i>
+        <h5 style="font-family:'Syne',sans-serif; font-weight:800; margin-bottom:8px;">¿Eliminar cliente?</h5>
+        <p id="modalNombre" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:24px;"></p>
+        <div class="d-flex gap-2 justify-content-center">
+            <button onclick="cerrarModal()"
+                style="background:var(--surface2); color:var(--text); border:1px solid var(--border);
+                       border-radius:8px; padding:8px 24px; cursor:pointer; font-family:'Syne',sans-serif; font-weight:600;">
+                Cancelar
+            </button>
+            <a id="btnConfirmar" href="#"
+                style="background:var(--accent2); color:#fff; border:none; border-radius:8px;
+                       padding:8px 24px; cursor:pointer; font-family:'Syne',sans-serif; font-weight:600;
+                       text-decoration:none; display:inline-block;">
+                Sí, eliminar
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Buscador
+    document.getElementById("buscador").addEventListener("input", function () {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll(".fila-cliente").forEach(fila => {
+            fila.style.display = fila.innerText.toLowerCase().includes(q) ? "" : "none";
+        });
+    });
+
+    // Modal eliminar
+    function confirmarEliminar(id, nombre) {
+        document.getElementById("modalNombre").textContent = "Se eliminará a " + nombre + " permanentemente.";
+        document.getElementById("btnConfirmar").href = "/clientes/eliminar/" + id;
+        document.getElementById("modalEliminar").style.display = "flex";
+    }
+    function cerrarModal() {
+        document.getElementById("modalEliminar").style.display = "none";
+    }
+</script>
+{% endblock %}

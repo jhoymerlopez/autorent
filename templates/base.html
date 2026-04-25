@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AutoRent{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0A0A;
+            --accent: #E8FF00;
+            --accent2: #FF4D00;
+            --surface: #141414;
+            --surface2: #1E1E1E;
+            --border: #2A2A2A;
+            --text: #F0F0F0;
+            --text-muted: #888;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--primary);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6, .brand {
+            font-family: 'Syne', sans-serif;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 0;
+        }
+
+        .sidebar-brand {
+            padding: 28px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-brand .brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .sidebar-brand .brand-sub {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            padding: 8px 24px 4px;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .nav-link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            margin: 1px 0;
+        }
+
+        .nav-link-item:hover {
+            color: var(--text);
+            background: var(--surface2);
+            border-left-color: var(--border);
+        }
+
+        .nav-link-item.active {
+            color: var(--accent);
+            background: rgba(232, 255, 0, 0.06);
+            border-left-color: var(--accent);
+        }
+
+        .nav-link-item i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .user-info .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .user-info .user-role {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── MAIN CONTENT ── */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 6px;
+        }
+
+        /* ── CARDS ── */
+        .card-dark {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-dark .card-header {
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .card-dark .card-body {
+            padding: 20px;
+        }
+
+        /* ── STAT CARDS ── */
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: #444; }
+
+        .stat-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── TABLE ── */
+        .table-dark-custom {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-dark-custom th {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .table-dark-custom td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .table-dark-custom tr:last-child td { border-bottom: none; }
+
+        .table-dark-custom tbody tr {
+            transition: background 0.15s;
+        }
+
+        .table-dark-custom tbody tr:hover {
+            background: var(--surface2);
+        }
+
+        /* ── BADGES ── */
+        .badge-custom {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-green  { background: rgba(0,220,130,0.12); color: #00DC82; }
+        .badge-yellow { background: rgba(232,255,0,0.12);  color: var(--accent); }
+        .badge-red    { background: rgba(255,77,0,0.12);   color: var(--accent2); }
+        .badge-gray   { background: rgba(136,136,136,0.12); color: var(--text-muted); }
+        .badge-blue   { background: rgba(100,180,255,0.12); color: #64B4FF; }
+
+        /* ── BUTTONS ── */
+        .btn-accent {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-accent:hover {
+            background: #d4e800;
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-outline-custom:hover {
+            color: var(--text);
+            border-color: #444;
+            background: var(--surface2);
+        }
+
+        .btn-danger-custom {
+            background: rgba(255,77,0,0.1);
+            color: var(--accent2);
+            border: 1px solid rgba(255,77,0,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-danger-custom:hover {
+            background: rgba(255,77,0,0.2);
+            color: var(--accent2);
+        }
+
+        /* ── FORMS ── */
+        .form-dark .form-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-dark .form-control,
+        .form-dark .form-select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-dark .form-control:focus,
+        .form-dark .form-select:focus {
+            background: var(--surface2);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 0 0 3px rgba(232,255,0,0.1);
+        }
+
+        .form-dark .form-control::placeholder { color: #555; }
+
+        /* ── ALERTS ── */
+        .alert-custom {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success { background: rgba(0,220,130,0.1); border: 1px solid rgba(0,220,130,0.2); color: #00DC82; }
+        .alert-danger  { background: rgba(255,77,0,0.1);  border: 1px solid rgba(255,77,0,0.2);  color: var(--accent2); }
+        .alert-warning { background: rgba(232,255,0,0.08); border: 1px solid rgba(232,255,0,0.2); color: var(--accent); }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% if session.usuario %}
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-name">AutoRent</div>
+        <div class="brand-sub">Sistema de Alquiler</div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">General</div>
+        <a href="/" class="nav-link-item {% if request.path == '/' %}active{% endif %}">
+            <i class="bi bi-grid-1x2"></i> Dashboard
+        </a>
+
+        <div class="nav-section">Flota</div>
+        <a href="/vehiculos" class="nav-link-item {% if '/vehiculos' in request.path %}active{% endif %}">
+            <i class="bi bi-car-front"></i> Vehículos
+        </a>
+
+        <div class="nav-section">Operaciones</div>
+        <a href="/alquileres" class="nav-link-item {% if '/alquileres' in request.path %}active{% endif %}">
+            <i class="bi bi-clipboard-check"></i> Alquileres
+        </a>
+        <a href="/multas" class="nav-link-item {% if '/multas' in request.path %}active{% endif %}">
+            <i class="bi bi-exclamation-triangle"></i> Multas
+        </a>
+
+        {% if session.usuario.rol in ['admin', 'agente'] %}
+        <div class="nav-section">Administración</div>
+        <a href="/clientes" class="nav-link-item {% if '/clientes' in request.path %}active{% endif %}">
+            <i class="bi bi-person-lines-fill"></i> Clientes
+        </a>
+        <a href="/reportes" class="nav-link-item {% if '/reportes' in request.path %}active{% endif %}">
+            <i class="bi bi-graph-up"></i> Reportes
+        </a>
+        {% if session.usuario.rol == 'admin' %}
+        <a href="/empleados" class="nav-link-item {% if '/empleados' in request.path %}active{% endif %}">
+            <i class="bi bi-people"></i> Empleados
+        </a>
+        {% endif %}
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar">{{ session.usuario.nombre[0].upper() }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ session.usuario.nombre.split()[0] }}</div>
+                <div class="user-role">{{ session.usuario.rol }}</div>
+            </div>
+            <a href="/logout" class="ms-auto btn-outline-custom" style="padding:6px 10px;">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert-custom alert-{{ category }}">
+                    <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}x-circle{% else %}exclamation-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+
+{% else %}
+    {% block auth_content %}{% endblock %}
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Multas — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Multas</h1>
+        <p class="page-subtitle">Registro de daños y multas por vehículo</p>
+    </div>
+    {% if session.usuario.rol in ['admin', 'agente'] %}
+    <a href="/multas/registrar" class="btn-accent">
+        <i class="bi bi-plus-lg"></i> Registrar multa
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filtros -->
+<div class="card-dark mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-3 flex-wrap">
+            <button class="btn-outline-custom filtro-btn active" data-filtro="todos">Todas</button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="pendiente">
+                <i class="bi bi-clock"></i> Pendientes
+            </button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="pagada">
+                <i class="bi bi-check-circle"></i> Pagadas
+            </button>
+            <button class="btn-outline-custom filtro-btn" data-filtro="disputada">
+                <i class="bi bi-question-circle"></i> Disputadas
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card-dark">
+    <div class="card-body p-0">
+        <table class="table-dark-custom w-100" id="tabla-multas">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Vehículo</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    {% if session.usuario.rol in ['admin', 'agente'] %}
+                    <th>Acciones</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in multas %}
+                <tr data-estado="{{ m.estado }}">
+                    <td style="font-weight: 600;">{{ m.usuario_nombre }}</td>
+                    <td>{{ m.vehiculo_nombre }}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem; max-width: 220px;">
+                        {{ m.descripcion }}
+                    </td>
+                    <td style="color: var(--accent2); font-weight: 700;">
+                        ${{ "{:,}".format(m.monto) }}
+                    </td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">
+                        {{ m.fecha.strftime('%d/%m/%Y') }}
+                    </td>
+                    <td>
+                        {% if m.estado == 'pendiente' %}
+                            <span class="badge-custom badge-yellow">Pendiente</span>
+                        {% elif m.estado == 'pagada' %}
+                            <span class="badge-custom badge-green">Pagada</span>
+                        {% else %}
+                            <span class="badge-custom badge-blue">Disputada</span>
+                        {% endif %}
+                    </td>
+                    {% if session.usuario.rol in ['admin', 'agente'] %}
+                    <td>
+                        {% if m.estado == 'pendiente' %}
+                        <a href="/multas/pagar/{{ m._id }}"
+                           class="btn-outline-custom"
+                           onclick="return confirm('¿Marcar multa como pagada?')">
+                            <i class="bi bi-check-lg"></i> Marcar pagada
+                        </a>
+                        {% else %}
+                            <span style="color: var(--text-muted); font-size: 0.82rem;">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted);">
+                        <i class="bi bi-shield-check" style="font-size: 2rem; display:block; margin-bottom: 8px;"></i>
+                        No hay multas registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filtro = this.dataset.filtro;
+            document.querySelectorAll('#tabla-multas tbody tr[data-estado]').forEach(row => {
+                row.style.display = (filtro === 'todos' || row.dataset.estado === filtro) ? '' : 'none';
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filtro-btn.active {
+        color: var(--accent);
+        border-color: var(--accent);
+        background: rgba(232,255,0,0.06);
+    }
+</style>
+{% endblock %}

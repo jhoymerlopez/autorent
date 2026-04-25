@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — AutoRent{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Bienvenido, {{ usuario.nombre.split()[0] }} — {{ usuario.rol | capitalize }}</p>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(232,255,0,0.1); color: #E8FF00;">
+                <i class="bi bi-car-front"></i>
+            </div>
+            <div class="stat-value">{{ total_vehiculos }}</div>
+            <div class="stat-label">Vehículos</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(0,220,130,0.1); color: #00DC82;">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ vehiculos_disponibles }}</div>
+            <div class="stat-label">Disponibles</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(100,180,255,0.1); color: #64B4FF;">
+                <i class="bi bi-clipboard-check"></i>
+            </div>
+            <div class="stat-value">{{ alquileres_activos }}</div>
+            <div class="stat-label">Alquileres activos</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(255,77,0,0.1); color: #FF4D00;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ multas_pendientes }}</div>
+            <div class="stat-label">Multas pendientes</div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header">
+                <i class="bi bi-car-front me-2"></i> Vehículos disponibles
+            </div>
+            <div class="card-body p-0">
+                <table class="table-dark-custom w-100">
+                    <thead>
+                        <tr>
+                            <th>Vehículo</th>
+                            <th>Tipo</th>
+                            <th>Precio/día</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in vehiculos_recientes %}
+                        <tr>
+                            <td><strong>{{ v.marca }} {{ v.modelo }}</strong><br>
+                                <small style="color: var(--text-muted)">{{ v.placa }}</small>
+                            </td>
+                            <td><span class="badge-custom badge-blue">{{ v.tipo }}</span></td>
+                            <td style="color: var(--accent); font-weight: 600;">
+                                ${{ "{:,}".format(v.precio_dia) }}
+                            </td>
+                            <td>
+                                {% if v.estado == 'disponible' %}
+                                    <span class="badge-custom badge-green">Disponible</span>
+                                {% elif v.estado == 'alquilado' %}
+                                    <span class="badge-custom badge-yellow">Alquilado</span>
+                                {% else %}
+                                    <span class="badge-custom badge-gray">Mantenimiento</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="color: var(--text-muted); text-align:center; padding: 24px;">Sin vehículos registrados</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card-dark">
+            <div class="card-header">
+                <i class="bi bi-clipboard-check me-2"></i> Alquileres recientes
+            </div>
+            <div class="card-body p-0">
+                <table class="table-dark-custom w-100">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in alquileres_recientes %}
+                        <tr>
+                            <td>{{ a.usuario_nombre }}</td>
+                            <td>{{ a.vehiculo_nombre }}</td>
+                            <td style="color: var(--accent); font-weight: 600;">
+                                ${{ "{:,}".format(a.precio_total) }}
+                            </td>
+                            <td>
+                                {% if a.estado == 'activo' %}
+                                    <span class="badge-custom badge-green">Activo</span>
+                                {% elif a.estado == 'finalizado' %}
+                                    <span class="badge-custom badge-gray">Finalizado</span>
+                                {% else %}
+                                    <span class="badge-custom badge-red">Cancelado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" style="color: var(--text-muted); text-align:center; padding: 24px;">Sin alquileres registrados</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
