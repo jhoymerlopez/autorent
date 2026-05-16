@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from config import alquileres_col, vehiculos_col, usuarios_col, empleados_col, pagos_col
 from bson import ObjectId
 from datetime import datetime
-from correos import correo_alquiler_creado, correo_alquiler_finalizado
+from correos import correo_alquiler_creado, correo_alquiler_finalizado, correo_documento_por_vencer
 import threading
 
 alquileres_bp = Blueprint("alquileres", __name__)
@@ -93,6 +93,27 @@ def crear():
             "fecha"      : datetime.now(),
             "comprobante": f"COMP-{datetime.now().strftime('%Y%m%d%H%M%S')}"
         })
+
+        # ── Verificar documentos por vencer (menos de 7 días) ──
+        docs_por_vencer = []
+        for nombre_doc, info in docs.items():
+            if "vencimiento" in info and info["vencimiento"]:
+                dias_restantes = (info["vencimiento"] - hoy).days
+                if 0 <= dias_restantes <= 7:
+                    docs_por_vencer.append({
+                        "nombre"        : nombre_doc.replace("_", " ").upper(),
+                        "vencimiento"   : info["vencimiento"].strftime("%d/%m/%Y"),
+                        "dias_restantes": dias_restantes
+                    })
+
+        if docs_por_vencer:
+            nombres = ", ".join([d["nombre"] for d in docs_por_vencer])
+            flash(f'⚠️ Atención: los siguientes documentos vencen pronto: {nombres}. Se recomienda renovarlos a la brevedad.', "warning")
+            # Enviar correo al admin
+            admin = empleados_col.find_one({"rol": "admin"})
+            if admin and admin.get("email"):
+                nombre_vehiculo_aviso = f'{vehiculo["marca"]} {vehiculo["modelo"]} ({vehiculo["placa"]})'
+                enviar_async(correo_documento_por_vencer, admin["email"], nombre_vehiculo_aviso, docs_por_vencer)
 
         # ── Enviar correo al cliente ──
         usuario = usuarios_col.find_one({"_id": usuario_id})

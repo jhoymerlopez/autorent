@@ -5,8 +5,7 @@ import os
 
 # ── Configuración Gmail ──
 GMAIL_USER = os.environ.get("GMAIL_USER", "jhoymerlopez75@gmail.com")
-GMAIL_PASS = os.environ.get("GMAIL_PASS", "nhlc vamp eokp tmkz")
-
+GMAIL_PASS = os.environ.get("GMAIL_PASS", "dzfi yyyz wohy pvvi")
 def enviar_correo(destinatario, asunto, html):
     try:
         msg = MIMEMultipart("alternative")
@@ -137,3 +136,32 @@ def correo_multa_registrada(cliente_email, cliente_nombre, vehiculo, descripcion
     <p>Por favor comunícate con nosotros para realizar el pago o si deseas disputar esta multa.</p>
     """
     return enviar_correo(cliente_email, "⚠️ Multa registrada — AutoRent", base_html(contenido))
+
+
+# ── Correo: documento por vencer ──
+def correo_documento_por_vencer(admin_email, vehiculo, documentos_por_vencer):
+    filas = ""
+    for doc in documentos_por_vencer:
+        filas += f"""
+        <tr>
+            <td>{doc['nombre']}</td>
+            <td>{doc['vencimiento']}</td>
+            <td style="color:#b8860b; font-weight:700;">{doc['dias_restantes']} día(s)</td>
+        </tr>"""
+
+    contenido = f"""
+    <h2>⚠️ Documentos por vencer</h2>
+    <p>Se intentó realizar un alquiler del vehículo <strong>{vehiculo}</strong> y se detectaron documentos próximos a vencer:</p>
+    <div class="info-box">
+      <table style="width:100%; border-collapse:collapse;">
+        <tr>
+          <td style="font-weight:700; color:#1F3864; padding:6px 0; border-bottom:1px solid #ddd;">Documento</td>
+          <td style="font-weight:700; color:#1F3864; padding:6px 0; border-bottom:1px solid #ddd;">Vence</td>
+          <td style="font-weight:700; color:#1F3864; padding:6px 0; border-bottom:1px solid #ddd;">Días restantes</td>
+        </tr>
+        {filas}
+      </table>
+    </div>
+    <p>El alquiler se realizó correctamente pero se recomienda renovar estos documentos antes de que venzan para evitar bloqueos futuros.</p>
+    """
+    return enviar_correo(admin_email, "⚠️ Documentos por vencer — AutoRent", base_html(contenido))
